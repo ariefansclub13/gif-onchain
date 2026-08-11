@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create GIF — GIF Onchain</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        GIF ONCHAIN
+    </div>
+
+    <nav>
+        <a href="index.html">Explore</a>
+        <a href="create.html">Create</a>
+    </nav>
+
+</header>
+
+
+<main class="create-page">
+
+    <div class="create-container">
+
+        <h1>Create your GIF</h1>
+
+        <p class="create-description">
+            Add a GIF to your collection and prepare its metadata.
+        </p>
+
+
+        <div class="upload-box">
+
+            <label for="gifInput" class="upload-button">
+                Choose GIF
+            </label>
+
+            <input
+                type="file"
+                id="gifInput"
+                accept=".gif,image/gif"
+                hidden
+            >
+
+            <p id="fileName">
+                No GIF selected
+            </p>
+
+        </div>
+
+
+        <div id="previewContainer" class="preview-container">
+
+            <img id="gifPreview" alt="GIF Preview">
+
+        </div>
+
+
+        <div class="form">
+
+            <label for="gifName">
+                GIF Name
+            </label>
+
+            <input
+                type="text"
+                id="gifName"
+                placeholder="Example: Dancing Cat"
+            >
+
+
+            <label for="creator">
+                Creator
+            </label>
+
+            <input
+                type="text"
+                id="creator"
+                placeholder="Your name or username"
+            >
+
+
+            <label for="description">
+                Description
+            </label>
+
+            <textarea
+                id="description"
+                placeholder="Tell us something about this GIF..."
+            ></textarea>
+
+
+            <button
+                id="addButton"
+                class="create-button"
+                type="button"
+            >
+                Add to Collection
+            </button>
+
+        </div>
+
+
+        <div id="result" class="result"></div>
+
+    </div>
+
+</main>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
