@@ -1,0 +1,148 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #0b0b0f;
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+header {
+    width: 100%;
+    padding: 24px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #22222a;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+nav a {
+    color: #aaa;
+    text-decoration: none;
+    margin-left: 24px;
+    font-size: 14px;
+}
+
+nav a:hover {
+    color: #fff;
+}
+
+.hero {
+    max-width: 1000px;
+    margin: 100px auto;
+    padding: 0 24px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: clamp(45px, 8vw, 90px);
+    line-height: 0.95;
+    margin-bottom: 25px;
+}
+
+.hero p {
+    max-width: 600px;
+    margin: 0 auto 35px;
+    color: #aaa;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: #ffffff;
+    color: #000000;
+}
+
+.btn-secondary {
+    border: 1px solid #33333d;
+    color: #ffffff;
+}
+
+.gallery {
+    max-width: 1100px;
+    margin: 0 auto 100px;
+    padding: 0 24px;
+}
+
+.gallery h2 {
+    margin-bottom: 25px;
+    font-size: 28px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.card {
+    background: #15151b;
+    border: 1px solid #25252d;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.card img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+.card-info {
+    padding: 15px;
+}
+
+.card-info h3 {
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.card-info p {
+    color: #777;
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    header {
+        padding: 20px;
+    }
+
+    nav a {
+        margin-left: 12px;
+    }
+
+    .hero {
+        margin: 70px auto;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
