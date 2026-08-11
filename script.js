@@ -7,8 +7,6 @@ const result = document.getElementById("result");
 
 let selectedGIF = null;
 
-/* GIF FILE SELECTION */
-
 if (gifInput) {
     gifInput.addEventListener("change", function () {
         const file = this.files[0];
@@ -24,7 +22,6 @@ if (gifInput) {
         }
 
         selectedGIF = file;
-
         fileName.textContent = file.name;
 
         const imageURL = URL.createObjectURL(file);
@@ -34,11 +31,8 @@ if (gifInput) {
     });
 }
 
-/* ADD TO COLLECTION */
-
 if (addButton) {
     addButton.addEventListener("click", function () {
-
         const gifName = document.getElementById("gifName").value.trim();
         const creator = document.getElementById("creator").value.trim();
         const description = document.getElementById("description").value.trim();
@@ -70,8 +64,6 @@ if (addButton) {
         console.log("GIF Metadata:", metadata);
 
         result.style.display = "block";
-
-        result.textContent =
-            "GIF prepared successfully. Metadata has been generated.";
+        result.textContent = "GIF prepared successfully. Metadata has been generated.";
     });
 }
