@@ -37,6 +37,8 @@
         </p>
 
 
+        <!-- GIF UPLOAD -->
+
         <div class="upload-box">
 
             <label for="gifInput" class="upload-button">
@@ -57,12 +59,23 @@
         </div>
 
 
-        <div id="previewContainer" class="preview-container">
+        <!-- GIF PREVIEW -->
 
-            <img id="gifPreview" alt="GIF Preview">
+        <div
+            id="previewContainer"
+            class="preview-container"
+            style="display: none;"
+        >
+
+            <img
+                id="gifPreview"
+                alt="GIF Preview"
+            >
 
         </div>
 
+
+        <!-- GIF INFORMATION -->
 
         <div class="form">
 
@@ -109,121 +122,25 @@
         </div>
 
 
-        <div id="result" class="result"></div>
+        <!-- UPLOAD RESULT -->
+
+        <div
+            id="result"
+            class="result"
+            style="display: none;"
+        ></div>
 
     </div>
 
 </main>
 
-<script>
-const gifInput = document.getElementById("gifInput");
-const gifPreview = document.getElementById("gifPreview");
-const previewContainer = document.getElementById("previewContainer");
-const fileName = document.getElementById("fileName");
-const addButton = document.getElementById("addButton");
-const result = document.getElementById("result");
 
-let selectedGIF = null;
-
-gifInput.addEventListener("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) {
-        return;
-    }
-
-    if (file.type !== "image/gif") {
-
-        alert("Please select a GIF file.");
-
-        this.value = "";
-
-        return;
-    }
-
-    selectedGIF = file;
-
-    fileName.textContent = file.name;
-
-    const imageURL = URL.createObjectURL(file);
-
-    gifPreview.src = imageURL;
-
-    previewContainer.style.display = "block";
-});
-
-
-addButton.addEventListener("click", function () {
-
-    const gifName = document.getElementById("gifName").value.trim();
-
-    const creator = document.getElementById("creator").value.trim();
-
-    const description = document.getElementById("description").value.trim();
-
-
-    if (!selectedGIF) {
-
-        alert("Please choose a GIF first.");
-
-        return;
-    }
-
-
-    if (!gifName) {
-
-        alert("Please enter a GIF name.");
-
-        return;
-    }
-
-
-    if (!creator) {
-
-        alert("Please enter the creator name.");
-
-        return;
-    }
-
-
-    const metadata = {
-
-        name: gifName,
-
-        creator: creator,
-
-        description: description,
-
-        fileName: selectedGIF.name,
-
-        fileType: selectedGIF.type,
-
-        createdAt: new Date().toISOString()
-
-    };
-
-
-    console.log(metadata);
-
-
-    result.style.display = "block";
-
-    result.textContent =
-        "GIF prepared successfully. Metadata has been generated.";
-
-});
-</script>
-    <div id="result" class="result"></div>
-
-</div>
-
-</main>
+<!-- IMPORTANT:
+     All JavaScript is handled by script.js.
+     There is NO old inline JavaScript here.
+-->
 
 <script src="script.js?v=2"></script>
-
-</body>
-</html>
 
 </body>
 </html>
