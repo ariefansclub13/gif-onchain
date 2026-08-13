@@ -11,7 +11,9 @@ const WORKER_URL =
     "https://broad-cake-b26b.mochamadarie.workers.dev/upload";
 
 
-/* GIF FILE SELECTION */
+/* =========================
+   GIF FILE SELECTION
+========================= */
 
 if (gifInput) {
 
@@ -48,7 +50,9 @@ if (gifInput) {
 }
 
 
-/* ADD TO COLLECTION */
+/* =========================
+   ADD TO COLLECTION
+========================= */
 
 if (addButton) {
 
@@ -56,23 +60,37 @@ if (addButton) {
         "click",
         async function () {
 
+            const gifNameElement =
+                document.getElementById("gifName");
+
+            const creatorElement =
+                document.getElementById("creator");
+
+            const descriptionElement =
+                document.getElementById("description");
+
+
             const gifName =
-                document
-                    .getElementById("gifName")
-                    .value
-                    .trim();
+                gifNameElement
+                    ? gifNameElement.value.trim()
+                    : "";
 
             const creator =
-                document
-                    .getElementById("creator")
-                    .value
-                    .trim();
+                creatorElement
+                    ? creatorElement.value.trim()
+                    : "";
 
             const description =
-                document
-                    .getElementById("description")
-                    .value
-                    .trim();
+                descriptionElement
+                    ? descriptionElement.value.trim()
+                    : "";
+
+
+            console.log("FORM DATA:", {
+                gifName: gifName,
+                creator: creator,
+                description: description
+            });
 
 
             /* VALIDATION */
@@ -107,7 +125,7 @@ if (addButton) {
             }
 
 
-            /* UPLOAD STATE */
+            /* BUTTON STATE */
 
             addButton.disabled = true;
 
@@ -122,25 +140,31 @@ if (addButton) {
 
             try {
 
-                /* FORM DATA */
+                /* =========================
+                   CREATE FORM DATA
+                ========================= */
 
                 const formData =
                     new FormData();
+
 
                 formData.append(
                     "file",
                     selectedGIF
                 );
 
+
                 formData.append(
                     "name",
                     gifName
                 );
 
+
                 formData.append(
                     "creator",
                     creator
                 );
+
 
                 formData.append(
                     "description",
@@ -148,7 +172,31 @@ if (addButton) {
                 );
 
 
-                /* SEND TO WORKER */
+                /* DEBUG */
+
+                console.log(
+                    "Sending data to Worker..."
+                );
+
+                console.log(
+                    "name:",
+                    gifName
+                );
+
+                console.log(
+                    "creator:",
+                    creator
+                );
+
+                console.log(
+                    "description:",
+                    description
+                );
+
+
+                /* =========================
+                   SEND TO CLOUDFLARE WORKER
+                ========================= */
 
                 const response =
                     await fetch(
@@ -165,7 +213,7 @@ if (addButton) {
 
 
                 console.log(
-                    "Worker response:",
+                    "WORKER RESPONSE:",
                     data
                 );
 
@@ -185,7 +233,9 @@ if (addButton) {
                 }
 
 
-                /* GET CID */
+                /* =========================
+                   SUCCESS
+                ========================= */
 
                 const gifCID =
                     data.gif.cid;
@@ -197,11 +247,10 @@ if (addButton) {
                 const gifURL =
                     `https://gateway.pinata.cloud/ipfs/${gifCID}`;
 
+
                 const metadataURL =
                     `https://gateway.pinata.cloud/ipfs/${metadataCID}`;
 
-
-                /* SHOW RESULT */
 
                 result.innerHTML = `
 
@@ -252,29 +301,18 @@ if (addButton) {
                 `;
 
 
-                /* DEBUG */
-
-                console.log(
-                    "GIF CID:",
-                    gifCID
-                );
-
-                console.log(
-                    "Metadata CID:",
-                    metadataCID
-                );
-
-
             } catch (error) {
 
                 console.error(
-                    "Upload error:",
+                    "UPLOAD ERROR:",
                     error
                 );
+
 
                 result.textContent =
                     "Upload failed: " +
                     error.message;
+
 
             } finally {
 
