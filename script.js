@@ -36,7 +36,8 @@ if (gifInput) {
 
         fileName.textContent = file.name;
 
-        const imageURL = URL.createObjectURL(file);
+        const imageURL =
+            URL.createObjectURL(file);
 
         gifPreview.src = imageURL;
 
@@ -51,151 +52,240 @@ if (gifInput) {
 
 if (addButton) {
 
-    addButton.addEventListener("click", async function () {
+    addButton.addEventListener(
+        "click",
+        async function () {
 
-        const gifName =
-            document.getElementById("gifName").value.trim();
+            const gifName =
+                document
+                    .getElementById("gifName")
+                    .value
+                    .trim();
 
-        const creator =
-            document.getElementById("creator").value.trim();
+            const creator =
+                document
+                    .getElementById("creator")
+                    .value
+                    .trim();
 
-        const description =
-            document.getElementById("description").value.trim();
-
-
-        if (!selectedGIF) {
-
-            alert("Please choose a GIF first.");
-
-            return;
-
-        }
-
-
-        if (!gifName) {
-
-            alert("Please enter a GIF name.");
-
-            return;
-
-        }
+            const description =
+                document
+                    .getElementById("description")
+                    .value
+                    .trim();
 
 
-        if (!creator) {
+            /* VALIDATION */
 
-            alert("Please enter the creator name.");
+            if (!selectedGIF) {
 
-            return;
-
-        }
-
-
-        addButton.disabled = true;
-
-        addButton.textContent = "Uploading GIF...";
-
-        result.style.display = "block";
-
-        result.textContent =
-            "Uploading your GIF to IPFS...";
-
-
-        try {
-
-            const formData = new FormData();
-
-            formData.append("file", selectedGIF);
-
-            formData.append("name", gifName);
-
-
-            const response = await fetch(
-                WORKER_URL,
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
-
-
-            const data = await response.json();
-
-
-            if (!response.ok || !data.success) {
-
-                throw new Error(
-                    data.error ||
-                    "Upload failed."
+                alert(
+                    "Please choose a GIF first."
                 );
 
+                return;
             }
 
 
-            console.log(
-                "Pinata response:",
-                data
-            );
+            if (!gifName) {
+
+                alert(
+                    "Please enter a GIF name."
+                );
+
+                return;
+            }
 
 
-            const cid = data.cid;
+            if (!creator) {
 
-            const ipfsURL =
-                `https://gateway.pinata.cloud/ipfs/${cid}`;
+                alert(
+                    "Please enter the creator name."
+                );
 
-
-            result.innerHTML = `
-                <strong>GIF uploaded successfully! 🎉</strong>
-                <br><br>
-                <strong>IPFS CID:</strong>
-                <br>
-                ${cid}
-                <br><br>
-                <a
-                    href="${ipfsURL}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    View GIF on IPFS
-                </a>
-            `;
+                return;
+            }
 
 
-            console.log(
-                "GIF Metadata:",
-                {
-                    name: gifName,
-                    creator: creator,
-                    description: description,
-                    cid: cid,
-                    ipfs: ipfsURL,
-                    createdAt:
-                        new Date().toISOString()
-                }
-            );
+            /* UPLOAD STATE */
 
-
-        } catch (error) {
-
-            console.error(
-                "Upload error:",
-                error
-            );
-
-
-            result.textContent =
-                "Upload failed: " +
-                error.message;
-
-
-        } finally {
-
-            addButton.disabled = false;
+            addButton.disabled = true;
 
             addButton.textContent =
-                "Add to Collection";
+                "Uploading GIF...";
+
+            result.style.display = "block";
+
+            result.textContent =
+                "Uploading GIF and metadata to IPFS...";
+
+
+            try {
+
+                /* FORM DATA */
+
+                const formData =
+                    new FormData();
+
+                formData.append(
+                    "file",
+                    selectedGIF
+                );
+
+                formData.append(
+                    "name",
+                    gifName
+                );
+
+                formData.append(
+                    "creator",
+                    creator
+                );
+
+                formData.append(
+                    "description",
+                    description
+                );
+
+
+                /* SEND TO WORKER */
+
+                const response =
+                    await fetch(
+                        WORKER_URL,
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Worker response:",
+                    data
+                );
+
+
+                /* ERROR */
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.error ||
+                        "Upload failed."
+                    );
+
+                }
+
+
+                /* GET CID */
+
+                const gifCID =
+                    data.gif.cid;
+
+                const metadataCID =
+                    data.metadata.cid;
+
+
+                const gifURL =
+                    `https://gateway.pinata.cloud/ipfs/${gifCID}`;
+
+                const metadataURL =
+                    `https://gateway.pinata.cloud/ipfs/${metadataCID}`;
+
+
+                /* SHOW RESULT */
+
+                result.innerHTML = `
+
+                    <strong>
+                        GIF uploaded successfully! 🎉
+                    </strong>
+
+                    <br><br>
+
+                    <strong>
+                        GIF CID:
+                    </strong>
+
+                    <br>
+
+                    ${gifCID}
+
+                    <br>
+
+                    <a
+                        href="${gifURL}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View GIF on IPFS
+                    </a>
+
+                    <br><br>
+
+                    <strong>
+                        Metadata CID:
+                    </strong>
+
+                    <br>
+
+                    ${metadataCID}
+
+                    <br>
+
+                    <a
+                        href="${metadataURL}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View Metadata JSON
+                    </a>
+
+                `;
+
+
+                /* DEBUG */
+
+                console.log(
+                    "GIF CID:",
+                    gifCID
+                );
+
+                console.log(
+                    "Metadata CID:",
+                    metadataCID
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Upload error:",
+                    error
+                );
+
+                result.textContent =
+                    "Upload failed: " +
+                    error.message;
+
+            } finally {
+
+                addButton.disabled = false;
+
+                addButton.textContent =
+                    "Add to Collection";
+
+            }
 
         }
-
-    });
+    );
 
 }
