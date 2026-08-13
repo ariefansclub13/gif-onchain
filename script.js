@@ -1,64 +1,240 @@
-const gifInput = document.getElementById("gifInput");
-const gifPreview = document.getElementById("gifPreview");
-const previewContainer = document.getElementById("previewContainer");
-const fileName = document.getElementById("fileName");
-const addButton = document.getElementById("addButton");
-const result = document.getElementById("result");
+/* =========================================================
+   GIF ONCHAIN — COMPLETE SCRIPT
+   Upload GIF + Metadata + Mint NFT
+========================================================= */
 
-let selectedGIF = null;
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
 
 const WORKER_URL =
     "https://broad-cake-b26b.mochamadarie.workers.dev/upload";
 
+const CONTRACT_ADDRESS =
+    "0x369E7F9B7060211fa52B5009f6025Cd432f436E6";
 
-/* ==========================================
-   GIF FILE SELECTION
-========================================== */
+const BASE_SEPOLIA_CHAIN_ID =
+    "0x14a34";
 
-if (gifInput) {
 
-    gifInput.addEventListener("change", function () {
+/* =========================================================
+   SMART CONTRACT ABI
+========================================================= */
 
-        const file = this.files[0];
+const CONTRACT_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "metadataURI",
+                "type": "string"
+            }
+        ],
+        "name": "mintGIF",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
 
-        if (!file) {
-            return;
-        }
+    {
+        "inputs": [],
+        "name": "nextTokenId",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
 
-        if (file.type !== "image/gif") {
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "tokenURI",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
 
-            alert("Please select a GIF file.");
 
-            this.value = "";
+/* =========================================================
+   LOAD ETHERS
+========================================================= */
 
-            return;
-        }
+async function loadEthers() {
 
-        selectedGIF = file;
+    if (window.ethers) {
+        return window.ethers;
+    }
 
-        fileName.textContent = file.name;
+    return new Promise((resolve, reject) => {
 
-        const imageURL =
-            URL.createObjectURL(file);
+        const script =
+            document.createElement("script");
 
-        gifPreview.src = imageURL;
+        script.src =
+            "https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.min.js";
 
-        previewContainer.style.display = "block";
+        script.onload = () => {
+
+            if (window.ethers) {
+                resolve(window.ethers);
+            } else {
+                reject(
+                    new Error(
+                        "Ethers gagal dimuat."
+                    )
+                );
+            }
+
+        };
+
+        script.onerror = () => {
+
+            reject(
+                new Error(
+                    "Tidak bisa memuat library Ethers."
+                )
+            );
+
+        };
+
+        document.head.appendChild(script);
 
     });
 
 }
 
 
-/* ==========================================
-   ADD GIF TO COLLECTION
-========================================== */
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const gifInput =
+    document.getElementById("gifInput");
+
+const gifPreview =
+    document.getElementById("gifPreview");
+
+const previewContainer =
+    document.getElementById("previewContainer");
+
+const fileName =
+    document.getElementById("fileName");
+
+const addButton =
+    document.getElementById("addButton");
+
+const result =
+    document.getElementById("result");
+
+
+let selectedGIF = null;
+
+
+/* =========================================================
+   GIF FILE SELECTION
+========================================================= */
+
+if (gifInput) {
+
+    gifInput.addEventListener(
+        "change",
+        function () {
+
+            const file =
+                this.files[0];
+
+            if (!file) {
+                return;
+            }
+
+
+            if (file.type !== "image/gif") {
+
+                alert(
+                    "Please select a GIF file."
+                );
+
+                this.value = "";
+
+                return;
+            }
+
+
+            selectedGIF = file;
+
+
+            if (fileName) {
+                fileName.textContent =
+                    file.name;
+            }
+
+
+            if (gifPreview) {
+
+                const imageURL =
+                    URL.createObjectURL(file);
+
+                gifPreview.src =
+                    imageURL;
+
+            }
+
+
+            if (previewContainer) {
+
+                previewContainer.style.display =
+                    "block";
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   MAIN BUTTON
+========================================================= */
 
 if (addButton) {
 
     addButton.addEventListener(
         "click",
         async function () {
+
+            /* -------------------------------------------------
+               GET FORM VALUES
+            ------------------------------------------------- */
 
             const gifNameElement =
                 document.getElementById("gifName");
@@ -88,9 +264,9 @@ if (addButton) {
                     : "";
 
 
-            /* ==================================
+            /* -------------------------------------------------
                VALIDATION
-            ================================== */
+            ------------------------------------------------- */
 
             if (!selectedGIF) {
 
@@ -122,17 +298,19 @@ if (addButton) {
             }
 
 
-            /* ==================================
-               BUTTON LOADING STATE
-            ================================== */
+            /* -------------------------------------------------
+               LOADING
+            ------------------------------------------------- */
 
-            addButton.disabled = true;
+            addButton.disabled =
+                true;
 
             addButton.textContent =
                 "Uploading GIF...";
 
 
-            result.style.display = "block";
+            result.style.display =
+                "block";
 
             result.textContent =
                 "Uploading GIF and metadata to IPFS...";
@@ -140,9 +318,9 @@ if (addButton) {
 
             try {
 
-                /* ==============================
-                   CREATE FORM DATA
-                ============================== */
+                /* =================================================
+                   STEP 1 — UPLOAD GIF TO WORKER
+                ================================================= */
 
                 const formData =
                     new FormData();
@@ -172,10 +350,6 @@ if (addButton) {
                 );
 
 
-                /* ==============================
-                   SEND TO CLOUDFLARE WORKER
-                ============================== */
-
                 const response =
                     await fetch(
                         WORKER_URL,
@@ -191,14 +365,10 @@ if (addButton) {
 
 
                 console.log(
-                    "GIF ONCHAIN WORKER RESPONSE:",
+                    "WORKER RESPONSE:",
                     data
                 );
 
-
-                /* ==============================
-                   CHECK WORKER RESPONSE
-                ============================== */
 
                 if (
                     !response.ok ||
@@ -213,17 +383,12 @@ if (addButton) {
                 }
 
 
-                /* ==============================
-                   GET GIF CID
-                ============================== */
+                /* =================================================
+                   STEP 2 — GET CID
+                ================================================= */
 
                 const gifCID =
                     data.gifCID;
-
-
-                /* ==============================
-                   GET METADATA CID
-                ============================== */
 
                 const metadataCID =
                     data.metadataCID;
@@ -232,7 +397,7 @@ if (addButton) {
                 if (!gifCID) {
 
                     throw new Error(
-                        "GIF CID tidak ditemukan dari Worker."
+                        "GIF CID tidak ditemukan."
                     );
 
                 }
@@ -241,15 +406,11 @@ if (addButton) {
                 if (!metadataCID) {
 
                     throw new Error(
-                        "Metadata CID tidak ditemukan dari Worker."
+                        "Metadata CID tidak ditemukan."
                     );
 
                 }
 
-
-                /* ==============================
-                   CREATE IPFS URL
-                ============================== */
 
                 const gifURL =
                     `https://gateway.pinata.cloud/ipfs/${gifCID}`;
@@ -259,15 +420,302 @@ if (addButton) {
                     `https://gateway.pinata.cloud/ipfs/${metadataCID}`;
 
 
-                /* ==============================
-                   SUCCESS RESULT
-                ============================== */
+                console.log(
+                    "GIF CID:",
+                    gifCID
+                );
+
+
+                console.log(
+                    "Metadata CID:",
+                    metadataCID
+                );
+
+
+                /* =================================================
+                   STEP 3 — PREPARE METADATA URI
+                ================================================= */
+
+                const metadataURI =
+                    `ipfs://${metadataCID}`;
+
+
+                console.log(
+                    "Metadata URI:",
+                    metadataURI
+                );
+
+
+                /* =================================================
+                   STEP 4 — LOAD ETHERS
+                ================================================= */
+
+                result.textContent =
+                    "Preparing MetaMask...";
+
+
+                const ethers =
+                    await loadEthers();
+
+
+                /* =================================================
+                   STEP 5 — CHECK METAMASK
+                ================================================= */
+
+                if (!window.ethereum) {
+
+                    throw new Error(
+                        "MetaMask tidak ditemukan. Silakan install MetaMask."
+                    );
+
+                }
+
+
+                /* =================================================
+                   STEP 6 — CONNECT WALLET
+                ================================================= */
+
+                const provider =
+                    new ethers.BrowserProvider(
+                        window.ethereum
+                    );
+
+
+                await provider.send(
+                    "eth_requestAccounts",
+                    []
+                );
+
+
+                const network =
+                    await provider.getNetwork();
+
+
+                console.log(
+                    "Current network:",
+                    network
+                );
+
+
+                /* =================================================
+                   STEP 7 — CHECK BASE SEPOLIA
+                ================================================= */
+
+                if (
+                    network.chainId !==
+                    84532n
+                ) {
+
+                    result.textContent =
+                        "Switching to Base Sepolia...";
+
+
+                    try {
+
+                        await window.ethereum.request(
+                            {
+                                method:
+                                    "wallet_switchEthereumChain",
+
+                                params: [
+                                    {
+                                        chainId:
+                                            BASE_SEPOLIA_CHAIN_ID
+                                    }
+                                ]
+                            }
+                        );
+
+                    } catch (switchError) {
+
+                        /* -----------------------------------------
+                           BASE SEPOLIA NOT ADDED
+                        ----------------------------------------- */
+
+                        if (
+                            switchError.code ===
+                            4902
+                        ) {
+
+                            await window.ethereum.request(
+                                {
+                                    method:
+                                        "wallet_addEthereumChain",
+
+                                    params: [
+                                        {
+                                            chainId:
+                                                BASE_SEPOLIA_CHAIN_ID,
+
+                                            chainName:
+                                                "Base Sepolia",
+
+                                            nativeCurrency:
+                                                {
+                                                    name:
+                                                        "Ether",
+
+                                                    symbol:
+                                                        "ETH",
+
+                                                    decimals:
+                                                        18
+                                                },
+
+                                            rpcUrls: [
+                                                "https://sepolia.base.org"
+                                            ],
+
+                                            blockExplorerUrls: [
+                                                "https://sepolia.basescan.org"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            );
+
+                        } else {
+
+                            throw switchError;
+
+                        }
+
+                    }
+
+                }
+
+
+                /* =================================================
+                   STEP 8 — GET SIGNER
+                ================================================= */
+
+                const signer =
+                    await provider.getSigner();
+
+
+                const walletAddress =
+                    await signer.getAddress();
+
+
+                console.log(
+                    "Wallet:",
+                    walletAddress
+                );
+
+
+                /* =================================================
+                   STEP 9 — CONTRACT
+                ================================================= */
+
+                const contract =
+                    new ethers.Contract(
+                        CONTRACT_ADDRESS,
+                        CONTRACT_ABI,
+                        signer
+                    );
+
+
+                /* =================================================
+                   STEP 10 — MINT NFT
+                ================================================= */
+
+                result.textContent =
+                    "Please confirm the mint transaction in MetaMask...";
+
+
+                console.log(
+                    "Minting NFT..."
+                );
+
+
+                const transaction =
+                    await contract.mintGIF(
+                        walletAddress,
+                        metadataURI
+                    );
+
+
+                console.log(
+                    "Transaction sent:",
+                    transaction.hash
+                );
+
+
+                result.innerHTML = `
+                    <strong>Transaction submitted! ⏳</strong>
+                    <br><br>
+                    Waiting for Base Sepolia confirmation...
+                `;
+
+
+                /* =================================================
+                   STEP 11 — WAIT CONFIRMATION
+                ================================================= */
+
+                const receipt =
+                    await transaction.wait();
+
+
+                console.log(
+                    "Transaction confirmed:",
+                    receipt
+                );
+
+
+                /* =================================================
+                   STEP 12 — GET TOKEN ID
+                ================================================= */
+
+                let tokenId = null;
+
+
+                try {
+
+                    const nextToken =
+                        await contract.nextTokenId();
+
+
+                    tokenId =
+                        nextToken - 1n;
+
+                } catch (tokenError) {
+
+                    console.log(
+                        "Could not automatically determine token ID:",
+                        tokenError
+                    );
+
+                }
+
+
+                const txHash =
+                    receipt.hash;
+
+
+                const baseScanURL =
+                    `https://sepolia.basescan.org/tx/${txHash}`;
+
+
+                /* =================================================
+                   STEP 13 — SUCCESS
+                ================================================= */
 
                 result.innerHTML = `
 
                     <strong>
-                        GIF uploaded successfully! 🎉
+                        🎉 GIF successfully minted!
                     </strong>
+
+                    <br><br>
+
+
+                    <strong>
+                        Wallet:
+                    </strong>
+
+                    <br>
+
+                    ${walletAddress}
 
                     <br><br>
 
@@ -280,8 +728,7 @@ if (addButton) {
 
                     ${gifCID}
 
-                    <br><br>
-
+                    <br>
 
                     <a
                         href="${gifURL}"
@@ -302,8 +749,7 @@ if (addButton) {
 
                     ${metadataCID}
 
-                    <br><br>
-
+                    <br>
 
                     <a
                         href="${metadataURL}"
@@ -313,57 +759,150 @@ if (addButton) {
                         View Metadata JSON
                     </a>
 
+                    <br><br>
+
+
+                    ${
+                        tokenId !== null
+                        ? `
+                            <strong>
+                                Token ID:
+                            </strong>
+
+                            <br>
+
+                            ${tokenId.toString()}
+
+                            <br><br>
+                        `
+                        : ""
+                    }
+
+
+                    <strong>
+                        Transaction:
+                    </strong>
+
+                    <br>
+
+                    <a
+                        href="${baseScanURL}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View transaction on BaseScan
+                    </a>
+
                 `;
 
 
-                /* ==============================
-                   CONSOLE INFORMATION
-                ============================== */
+                /* =================================================
+                   CONSOLE
+                ================================================= */
+
+                console.log(
+                    "================================="
+                );
+
+                console.log(
+                    "GIF MINT SUCCESS"
+                );
+
+                console.log(
+                    "Wallet:",
+                    walletAddress
+                );
 
                 console.log(
                     "GIF CID:",
                     gifCID
                 );
 
-
                 console.log(
                     "Metadata CID:",
                     metadataCID
                 );
 
-
                 console.log(
-                    "GIF IPFS:",
-                    gifURL
+                    "Metadata URI:",
+                    metadataURI
                 );
 
+                console.log(
+                    "Transaction:",
+                    txHash
+                );
+
+                if (tokenId !== null) {
+
+                    console.log(
+                        "Token ID:",
+                        tokenId.toString()
+                    );
+
+                }
 
                 console.log(
-                    "Metadata IPFS:",
-                    metadataURL
+                    "================================="
                 );
 
 
             } catch (error) {
 
                 console.error(
-                    "GIF ONCHAIN UPLOAD ERROR:",
+                    "GIF ONCHAIN ERROR:",
                     error
                 );
 
 
-                result.textContent =
-                    "Upload failed: " +
-                    error.message;
+                let errorMessage =
+                    error.message ||
+                    "Unknown error.";
+
+
+                /* -------------------------------------------------
+                   FRIENDLY METAMASK ERRORS
+                ------------------------------------------------- */
+
+                if (
+                    error.code ===
+                    4001
+                ) {
+
+                    errorMessage =
+                        "Transaction dibatalkan di MetaMask.";
+
+                }
+
+
+                if (
+                    error.code ===
+                    "ACTION_REJECTED"
+                ) {
+
+                    errorMessage =
+                        "Transaction dibatalkan di MetaMask.";
+
+                }
+
+
+                result.innerHTML = `
+
+                    <strong>
+                        ❌ Upload / Mint gagal
+                    </strong>
+
+                    <br><br>
+
+                    ${errorMessage}
+
+                `;
 
 
             } finally {
 
-                /* ==============================
-                   RESTORE BUTTON
-                ============================== */
-
-                addButton.disabled = false;
+                addButton.disabled =
+                    false;
 
                 addButton.textContent =
                     "Add to Collection";
