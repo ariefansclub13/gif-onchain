@@ -11,9 +11,9 @@ const WORKER_URL =
     "https://broad-cake-b26b.mochamadarie.workers.dev/upload";
 
 
-/* =========================
+/* ==========================================
    GIF FILE SELECTION
-========================= */
+========================================== */
 
 if (gifInput) {
 
@@ -50,9 +50,9 @@ if (gifInput) {
 }
 
 
-/* =========================
-   ADD TO COLLECTION
-========================= */
+/* ==========================================
+   ADD GIF TO COLLECTION
+========================================== */
 
 if (addButton) {
 
@@ -75,10 +75,12 @@ if (addButton) {
                     ? gifNameElement.value.trim()
                     : "";
 
+
             const creator =
                 creatorElement
                     ? creatorElement.value.trim()
                     : "";
+
 
             const description =
                 descriptionElement
@@ -86,14 +88,9 @@ if (addButton) {
                     : "";
 
 
-            console.log("FORM DATA:", {
-                gifName: gifName,
-                creator: creator,
-                description: description
-            });
-
-
-            /* VALIDATION */
+            /* ==================================
+               VALIDATION
+            ================================== */
 
             if (!selectedGIF) {
 
@@ -125,12 +122,15 @@ if (addButton) {
             }
 
 
-            /* BUTTON STATE */
+            /* ==================================
+               BUTTON LOADING STATE
+            ================================== */
 
             addButton.disabled = true;
 
             addButton.textContent =
                 "Uploading GIF...";
+
 
             result.style.display = "block";
 
@@ -140,9 +140,9 @@ if (addButton) {
 
             try {
 
-                /* =========================
+                /* ==============================
                    CREATE FORM DATA
-                ========================= */
+                ============================== */
 
                 const formData =
                     new FormData();
@@ -172,31 +172,9 @@ if (addButton) {
                 );
 
 
-                /* DEBUG */
-
-                console.log(
-                    "Sending data to Worker..."
-                );
-
-                console.log(
-                    "name:",
-                    gifName
-                );
-
-                console.log(
-                    "creator:",
-                    creator
-                );
-
-                console.log(
-                    "description:",
-                    description
-                );
-
-
-                /* =========================
+                /* ==============================
                    SEND TO CLOUDFLARE WORKER
-                ========================= */
+                ============================== */
 
                 const response =
                     await fetch(
@@ -213,12 +191,14 @@ if (addButton) {
 
 
                 console.log(
-                    "WORKER RESPONSE:",
+                    "GIF ONCHAIN WORKER RESPONSE:",
                     data
                 );
 
 
-                /* ERROR */
+                /* ==============================
+                   CHECK WORKER RESPONSE
+                ============================== */
 
                 if (
                     !response.ok ||
@@ -233,16 +213,43 @@ if (addButton) {
                 }
 
 
-                /* =========================
-                   SUCCESS
-                ========================= */
+                /* ==============================
+                   GET GIF CID
+                ============================== */
 
                 const gifCID =
-                    data.gif.cid;
+                    data.gifCID;
+
+
+                /* ==============================
+                   GET METADATA CID
+                ============================== */
 
                 const metadataCID =
-                    data.metadata.cid;
+                    data.metadataCID;
 
+
+                if (!gifCID) {
+
+                    throw new Error(
+                        "GIF CID tidak ditemukan dari Worker."
+                    );
+
+                }
+
+
+                if (!metadataCID) {
+
+                    throw new Error(
+                        "Metadata CID tidak ditemukan dari Worker."
+                    );
+
+                }
+
+
+                /* ==============================
+                   CREATE IPFS URL
+                ============================== */
 
                 const gifURL =
                     `https://gateway.pinata.cloud/ipfs/${gifCID}`;
@@ -252,6 +259,10 @@ if (addButton) {
                     `https://gateway.pinata.cloud/ipfs/${metadataCID}`;
 
 
+                /* ==============================
+                   SUCCESS RESULT
+                ============================== */
+
                 result.innerHTML = `
 
                     <strong>
@@ -259,6 +270,7 @@ if (addButton) {
                     </strong>
 
                     <br><br>
+
 
                     <strong>
                         GIF CID:
@@ -268,7 +280,8 @@ if (addButton) {
 
                     ${gifCID}
 
-                    <br>
+                    <br><br>
+
 
                     <a
                         href="${gifURL}"
@@ -280,6 +293,7 @@ if (addButton) {
 
                     <br><br>
 
+
                     <strong>
                         Metadata CID:
                     </strong>
@@ -288,7 +302,8 @@ if (addButton) {
 
                     ${metadataCID}
 
-                    <br>
+                    <br><br>
+
 
                     <a
                         href="${metadataURL}"
@@ -301,10 +316,38 @@ if (addButton) {
                 `;
 
 
+                /* ==============================
+                   CONSOLE INFORMATION
+                ============================== */
+
+                console.log(
+                    "GIF CID:",
+                    gifCID
+                );
+
+
+                console.log(
+                    "Metadata CID:",
+                    metadataCID
+                );
+
+
+                console.log(
+                    "GIF IPFS:",
+                    gifURL
+                );
+
+
+                console.log(
+                    "Metadata IPFS:",
+                    metadataURL
+                );
+
+
             } catch (error) {
 
                 console.error(
-                    "UPLOAD ERROR:",
+                    "GIF ONCHAIN UPLOAD ERROR:",
                     error
                 );
 
@@ -315,6 +358,10 @@ if (addButton) {
 
 
             } finally {
+
+                /* ==============================
+                   RESTORE BUTTON
+                ============================== */
 
                 addButton.disabled = false;
 
